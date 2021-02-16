@@ -3,7 +3,12 @@
 
 /* animation object that controls all the frames and
  * executes operations such as move, rotate, etc...
- */
+ *
+ *TODOs: requestAnimationFrame()
+ 	 CSS style manipulation
+*/
+
+
 function Animation(frame_rate, duration){ 
 	//duration: total duration of the animation.
 	
