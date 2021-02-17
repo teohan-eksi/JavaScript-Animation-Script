@@ -22,16 +22,18 @@ function mover(){
 
 }
 
+
 /* animation object that controls frame system and
 * executes operations such as move, rotate, etc... 
 * on objects.
  */
 
-/* check if there is alrady an Animation object
+/* check if there is already an Animation object
  * don't create a duplicate animation obj.*/
 let is_alive = false;
 
 function Animation(duration){ 
+
 	//duration: total duration of the animation.
 
 	/* creates a unique screen object if one animation function
