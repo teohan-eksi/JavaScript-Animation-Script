@@ -1,4 +1,5 @@
-
+/* Run this in a browser that supports requestAnimationFrame
+ * */
 
 
 function mo_sorter(){
@@ -25,20 +26,26 @@ function mover(){
 * executes operations such as move, rotate, etc... 
 * on objects.
  */
-function Animation(frame_rate, duration){ 
+
+/* check if there is alrady an Animation object
+ * don't create a duplicate animation obj.*/
+let is_alive = false;
+
+function Animation(duration){ 
 	//duration: total duration of the animation.
-	
-	let frame_interval = 1000/frame_rate; //1 second over f_r
-	//time interval between two frames.
 
 	/* creates a unique screen object if one animation function
 	 * was called to animate a DOM object.
 	 * 
-	 * for every DOM object on the screen, there is only one screen object,
+	 * for every DOM object on the screen, there is only one screen object.
 	 * only if its id is entered into one of the animation 
-	 * functions (move, rotate,...) */
+	 * functions (move, rotate,...), the screen object with the given id
+	 * is created.*/
+
 	let so_map = new Map();
 	function ScreenObj(id){
+		
+		is_alive = true;
 		this.id = id;
 		this.dom_obj = document.getElementById(id);
 
@@ -52,40 +59,23 @@ function Animation(frame_rate, duration){
 			let so = new ScreenObj(id);
 			so = null;
 		}
-/*
-		if(so_arr.length == 0){
-			let so = new ScreenObj(id);
-			so = null;
-			contains = true;
-		}else{
-			for(let i in so_arr){
-				if(so_arr[i].id == id){
-					contains = true;
-					break;
-				}
-			}
-		}
-		
-		if(!contains){
-			let so = new ScreenObj(id);
-			so = null;
-		}*/
 	}
 
-	this.move = function(id, m_start_time, m_end_time, path){ 
+	this.act = function(id, CSS_property, start_time, end_time, i_val, f_val, path){ 
 		check_id(id);
 
-		let move_params = [m_start_time, m_end_time, path];
+		let params = [start_time, end_time, i_val, f_val, path];
 	
 		/* add every move command to move_params property 
 		 * inside the screen object with the given id.*/
-		if(typeof so_map.get(id).move_params === "undefined"){
-			so_map.get(id).move_params = [];
+		if(typeof so_map.get(id).params === "undefined"){
+			so_map.get(id).params = [];
 		}
 
-		so_map.get(id).move_params.push(move_params);
-		move_params = null;
+		so_map.get(id).params.push(params);
+		params = null;
 	}
+
 
 	//animation frames start.
 	this.run = function(){
@@ -95,43 +85,42 @@ function Animation(frame_rate, duration){
 		}
 		console.log(so_map);
 
-		/* The setInterval() method calls a function or evaluates 
-		 * an expression at specified intervals (in milliseconds). */
-		let set_frame_int = setInterval(frame, frame_interval);
-	
-		let frame_count = 0;
-		let total_frame_count = duration*frame_rate;
-		function frame(){
-			
-			mover();
+		let run_t = 0;
+//requestAnimationFrame returns: let reqID = 0;
+		duration *= 1000; //convert to ms;
+		function callback(timestamp){
+			const run_t = timestamp - start_t;
 		
-
-			frame_count++;
-			if(frame_count >= total_frame_count){
-				// animaiton frames end when the frame count >= total frame number.
-				clearInterval(set_frame_int);
-				console.log("animation ended.");
-			}
+			//do the frame operations here.
+			
+			if(run_t < duration){
+				requestAnimationFrame(callback);//returns a unique ID, reqID.
+			}	
+			console.log(run_t);
 		}
+		
+		let drift = 2; //in ms. Totally made up value.
+		let start_t = performance.now() + drift;
+		requestAnimationFrame(callback);
+
+		/* cancels an animation frame request 
+		 * previously scheduled through a call to requestAnimationFrame().*/
+		//cancelAnimationFrame(reqID);	
 	}
 }
 
-//path functioning
-function path_demo(y, i_p, f_p){ 
-	// y = f(x), initial point, final point 
-	let path_arr = [];
-	path_arr[0] = y;
-	path_arr[1] = i_p;
-	path_arr[2] = f_p;
-	
-	return path_arr;
-}
+let duration = 3;
 
+let CSS_property = "left";
+let start_time = 1; // in sec
+let end_time = 2.5;
+let i_val = 0; // px
+let f_val = 200; //px
+let path = "linear";
 
-let y = 40;
-let animation = new Animation(80, 5);
-animation.move("image", 1, 2, path_demo(y, 0, 200)); //parameters: (object to move, start-time, end-time, path-function)
-animation.move("image2", 1, 3, path_demo(y, 0, 100));
-animation.move("image", 3, 4, path_demo(y, 200, 300));
-animation.run();
+let a = new Animation(duration);
+a.act("image", CSS_property, start_time, end_time, i_val, f_val, path); 
+//animation.move("image2", 1, 3, path);
+//animation.move("image", 3, 4, path);
+a.run();
 
