@@ -1,105 +1,128 @@
+/* Run this in a browser that supports requestAnimationFrame
+ * */
 
 
+function mo_sorter(){
+	/*sort the move objects according to their time parameters,
+	 * from the earliest start time to the latest before starting the animation.
+	 * this is called inside animation_object.run() function.
+	 * */
+	console.log("mo_sorted");
+}
 
-/* animation object that controls all the frames and
- * executes operations such as move, rotate, etc...
- *
- *TODOs: requestAnimationFrame()
- 	 CSS style manipulation
-*/
+function mover(){		
+	/* move the objects according to the parameters.
+	 * design moving objects like a ticking bomb.
+	 * after they reached their destinations,
+	 * they simply cease to exist and popped out 
+	 * from the moving objects array.*/
+	console.log("mover");			
+				
+	//mo_arr[i].obj_m.style.left = String(int) + "px"; 
+
+}
 
 
-function Animation(frame_rate, duration){ 
+/* animation object that controls frame system and
+* executes operations such as move, rotate, etc... 
+* on objects.
+ */
+
+/* check if there is already an Animation object
+ * don't create a duplicate animation obj.*/
+let is_alive = false;
+
+function Animation(duration){ 
+
 	//duration: total duration of the animation.
-	
-	let frame_interval = 1000/frame_rate; //1 second over f_r
-	//time interval between two frames.
 
-	/*how objects move:
-	 *animation_object.move(parameters) is called.
-	 *parameters: (the object to move(DOM Object),
-	 			   start time of movement(sec),
-				   end time of movement(sec),
-				   path function)
-	 *move function creates a move object
-	 *the object is pushed to the array of move objects
-	 *when animation_object.run() is called, the actual
-	 *mover function is called every frame and it moves
-	 *the object to move according to the parameters. */
-	let mo_arr = [];//array of moving objects.
-	this.move = function(obj_to_move, m_start_time, m_end_time, path_func){ //function to create a move object
-		let	mo = new Move(obj_to_move, m_start_time, m_end_time, path_func);
-		mo_arr.push(mo);
+	/* creates a unique screen object if one animation function
+	 * was called to animate a DOM object.
+	 * 
+	 * for every DOM object on the screen, there is only one screen object.
+	 * only if its id is entered into one of the animation 
+	 * functions (move, rotate,...), the screen object with the given id
+	 * is created.*/
+
+	let so_map = new Map();
+	function ScreenObj(id){
+		
+		is_alive = true;
+		this.id = id;
+		this.dom_obj = document.getElementById(id);
+
+		so_map.set(id, this);
 	}
 
-	function Move(obj_to_move, m_start_time, m_end_time, path_func){ //move object constructor.
-		this.obj_m = obj_to_move;
-		this.m_s = m_start_time;
-		this.m_e = m_end_time;
-		this.y = path_func;
-	}
-	
-	function mo_sorter(){
-		/*sort the objects to move from the earliest start time 
-		 * to the latest before starting the animation.*/
-	
-		console.log("mo_sorted");
-	}
-
-	let i = 0;
-	let x_initial = 0;
-	let move_step = 4;
-	function mover(frame_c){
-		//move the objects according to the parameters
-
-		for(i; i<mo_arr.length; i++){
-			if(mo_arr[i] != null){
-				if((frame_c/frame_rate) >= mo_arr[i].m_s){
-					mo_arr[i].obj_m.style.left = String(x_initial) + "px"; 
-					x_initial += move_step;
-
-					console.log(mo_arr[i].obj_m.style.left);
-				}
-	
-				if((frame_c/frame_rate) >= mo_arr[i].m_e ){
-					delete mo_arr[i]; //makes the i null element and doesnt reduce array length.
-				}
-			}
+	function check_id(id){
+		/* check if a screen object with the given id exists.
+		 * if it doesnt exist, create one and add it to the map */
+		if(!so_map.has(id)){
+			let so = new ScreenObj(id);
+			so = null;
 		}
-		i = 0;
 	}
+
+	this.act = function(id, CSS_property, start_time, end_time, i_val, f_val, path){ 
+		check_id(id);
+
+		let params = [start_time, end_time, i_val, f_val, path];
+	
+		/* add every move command to move_params property 
+		 * inside the screen object with the given id.*/
+		if(typeof so_map.get(id).params === "undefined"){
+			so_map.get(id).params = [];
+		}
+
+		so_map.get(id).params.push(params);
+		params = null;
+	}
+
 
 	//animation frames start.
 	this.run = function(){
 
-		mo_sorter();
-
-		/* The setInterval() method calls a function or evaluates 
-		 * an expression at specified intervals (in milliseconds). */
-		let set_frame_int = setInterval(frame, frame_interval);
-	
-		let frame_count = 0;
-		function frame(){
-
-			mover(frame_count);
-/*			rotater();
- *			shaker();
- */		
-			frame_count++;
-			if(frame_count >= (duration*frame_rate)){
-				// animaiton frames end when the frame count >= total frame number.
-				clearInterval(set_frame_int);
-				console.log("animation ended.");
-			}
+		if(so_map.size > 0){
+			mo_sorter();
 		}
+		console.log(so_map);
+
+		let run_t = 0;
+//requestAnimationFrame returns: let reqID = 0;
+		duration *= 1000; //convert to ms;
+		function callback(timestamp){
+			const run_t = timestamp - start_t;
+		
+			//do the frame operations here.
+			
+			if(run_t < duration){
+				requestAnimationFrame(callback);//returns a unique ID, reqID.
+			}	
+			console.log(run_t);
+		}
+		
+		let drift = 2; //in ms. Totally made up value.
+		let start_t = performance.now() + drift;
+		requestAnimationFrame(callback);
+
+		/* cancels an animation frame request 
+		 * previously scheduled through a call to requestAnimationFrame().*/
+		//cancelAnimationFrame(reqID);	
 	}
 }
 
-let image = document.getElementById("image");
+let duration = 3;
 
-let y = "x";
-let animation = new Animation(25, 5);
-animation.move(image, 1, 2, y); //parameters: (object to move, start-time, end-time, path-function)
-animation.move(image, 3, 4, y);
-animation.run();
+let CSS_property = "left";
+let start_time = 1; // in sec
+let end_time = 2.5;
+let i_val = 0; // px
+let f_val = 200; //px
+let path = "linear";
+
+let a = new Animation(duration);
+a.act("image", CSS_property, start_time, end_time, i_val, f_val, path); 
+//animation.move("image2", 1, 3, path);
+//animation.move("image", 3, 4, path);
+a.run();
 
