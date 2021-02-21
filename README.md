@@ -1,1 +1,1 @@
-# Basic-JS-animation-framework
+# JavaScript Animation Framework
