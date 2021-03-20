@@ -1,26 +1,16 @@
 /* Run this in a browser that supports requestAnimationFrame
  * */
 
-
-function mo_sorter(){
-	/*sort the move objects according to their time parameters,
-	 * from the earliest start time to the latest before starting the animation.
-	 * this is called inside animation_object.run() function.
-	 * */
-	console.log("mo_sorted");
+function framePayload(map){
+	map.forEach(function(value, key){
+		
+		//returns the value of 'left' style property.
+		let style_elem = map.get("image").dom_obj.style.getPropertyValue(map.get("image").params[0][0]);
+		console.log(style_elem);
+	});
 }
-
-function mover(){		
-	/* move the objects according to the parameters.
-	 * design moving objects like a ticking bomb.
-	 * after they reached their destinations,
-	 * they simply cease to exist and popped out 
-	 * from the moving objects array.*/
-	console.log("mover");			
-				
+			
 	//mo_arr[i].obj_m.style.left = String(int) + "px"; 
-
-}
 
 
 /* animation object that controls frame system and
@@ -28,26 +18,32 @@ function mover(){
 * on objects.
  */
 
-/* check if there is already an Animation object
- * don't create a duplicate animation obj.*/
+/* variable to check if there is alrady an Animation object.
+ * So that no duplication will be created.*/
 let is_alive = false;
-
 function Animation(duration){ 
-
 	//duration: total duration of the animation.
+	
+	if(is_alive){
+		//delete the original one and continue execution
+		//with the new one.
+	}else{
+		is_alive = true;
+	}
 
 	/* creates a unique screen object if one animation function
 	 * was called to animate a DOM object.
 	 * 
 	 * for every DOM object on the screen, there is only one screen object.
-	 * only if its id is entered into one of the animation 
-	 * functions (move, rotate,...), the screen object with the given id
-	 * is created.*/
+	 * the screen object with the given id is created, only if
+	 * its id was entered into the 'act' function */
 
 	let so_map = new Map();
+	/* the map->id : the id of the DOM object in the screen.
+	 * the map->value: screen object that contains the actual DOM object itself 
+	 * 				   and parameters according to which it should be animated.*/
+
 	function ScreenObj(id){
-		
-		is_alive = true;
 		this.id = id;
 		this.dom_obj = document.getElementById(id);
 
@@ -66,42 +62,46 @@ function Animation(duration){
 	this.act = function(id, CSS_property, start_time, end_time, i_val, f_val, path){ 
 		check_id(id);
 
-		let params = [start_time, end_time, i_val, f_val, path];
+		let params = [CSS_property, start_time, end_time, i_val, f_val, path];
 	
-		/* add every move command to move_params property 
-		 * inside the screen object with the given id.*/
+		/* add every command to params property 
+		 * inside the screen object with the given id in the map.
+		 * If params property was not created yet, crate one.*/
 		if(typeof so_map.get(id).params === "undefined"){
 			so_map.get(id).params = [];
 		}
-
+		
+		//push parameters of the act function into the screen object.
 		so_map.get(id).params.push(params);
 		params = null;
 	}
 
-
 	//animation frames start.
 	this.run = function(){
-
 		if(so_map.size > 0){
-			mo_sorter();
+			//console.log();
+				
+			framePayload(so_map);
 		}
-		console.log(so_map);
 
-		let run_t = 0;
-//requestAnimationFrame returns: let reqID = 0;
-		duration *= 1000; //convert to ms;
+		let run_t = 0;//run time
+		//let reqID = 0; requestAnimationFrame returns a unique ID after each call.
+		duration *= 1000; //converted to ms;
+		/* This function that calls requestAnimationFrame in a proper way 
+		 * was taken from Mozilla Developer Network. */
 		function callback(timestamp){
 			const run_t = timestamp - start_t;
 		
 			//do the frame operations here.
+			//framePayload();
 			
 			if(run_t < duration){
 				requestAnimationFrame(callback);//returns a unique ID, reqID.
 			}	
-			console.log(run_t);
+			//console.log(run_t);
 		}
 		
-		let drift = 2; //in ms. Totally made up value.
+		let drift = 2; //in ms. Totally experimental value.
 		let start_t = performance.now() + drift;
 		requestAnimationFrame(callback);
 
@@ -122,7 +122,5 @@ let path = "linear";
 
 let a = new Animation(duration);
 a.act("image", CSS_property, start_time, end_time, i_val, f_val, path); 
-//animation.move("image2", 1, 3, path);
-//animation.move("image", 3, 4, path);
 a.run();
 
