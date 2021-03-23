@@ -1,12 +1,18 @@
 /* Run this in a browser that supports requestAnimationFrame
  * */
 
-function framePayload(map){
+function framePayload(map, runTime){
+	let i = 0;
+	let propertyValue;
 	map.forEach(function(value, key){
-		
-		//returns the value of 'left' style property.
-		let style_elem = map.get("image").dom_obj.style.getPropertyValue(map.get("image").params[0][0]);
-		console.log(style_elem);
+		for(i; i < 6; i++){//because there are always 6 variables in 'params'
+			//console.log(value.params[0][i]);
+			//TODO calculate the increment based on path, initial and final value of time and value.		
+			if(runTime >= value.params[0][1]*1000 && runTime <= value.params[0][2]*1000){
+				value.dom_obj.style[value.params[0][0]] = value.params[0][4];
+			}
+		}
+
 	});
 }
 			
@@ -79,9 +85,11 @@ function Animation(duration){
 	//animation frames start.
 	this.run = function(){
 		if(so_map.size > 0){
-			//console.log();
-				
-			framePayload(so_map);
+			//setting initial value to their style elements.
+			so_map.forEach(function(value, key){
+				value.dom_obj.style[value.params[0][0]] = value.params[0][3];
+				console.log(value.dom_obj.style[value.params[0][0]]);
+			});
 		}
 
 		let run_t = 0;//run time
@@ -93,7 +101,7 @@ function Animation(duration){
 			const run_t = timestamp - start_t;
 		
 			//do the frame operations here.
-			//framePayload();
+			framePayload(so_map, run_t);
 			
 			if(run_t < duration){
 				requestAnimationFrame(callback);//returns a unique ID, reqID.
@@ -116,8 +124,8 @@ let duration = 3;
 let CSS_property = "left";
 let start_time = 1; // in sec
 let end_time = 2.5;
-let i_val = 0; // px
-let f_val = 200; //px
+let i_val = "0px";
+let f_val = "200px";
 let path = "linear";
 
 let a = new Animation(duration);
