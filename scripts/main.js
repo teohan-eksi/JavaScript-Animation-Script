@@ -1,6 +1,6 @@
 /* Run this in a browser that supports requestAnimationFrame
  * */
-
+// TODO commenting!!!
 function framePayload(map, runTime){
 	/* HOW THIS WORKS:
 	 * map.forEach loops through every key, value pair
@@ -12,9 +12,7 @@ function framePayload(map, runTime){
 	 *	}		
 	 *
 	 *
-	 *
-	 *	TODO explian and stuff
-	 *	make it work for all CSS properties.
+	 *	all the necessary calculations are done in the for loop in the forEach loop.
 	 */
 	let propertyValue;
 	let increment;
@@ -28,10 +26,14 @@ function framePayload(map, runTime){
 				increment = (value.params[i][4] - value.params[i][3])/
 							(60*(value.params[i][2] - value.params[i][1]));
 				
+				if(value.params[i][0] === "transform"){
+					valu.params[i][3] += increment;
+					value.dom_obj.style[value.params[i][0]] = rotate(valu.params[i][3] + valu.params[i][5]);
+				}
 				value.dom_obj.style[value.params[i][0]] = 
 				(parseFloat(value.dom_obj.
-				style[value.params[i][0]].split("px")[0])
-				+ increment).toString() + "px";
+				style[value.params[i][0]].split(value.params[i][5])[0])
+				+ increment).toString() + value.params[i][5];
 			}
 		}
 		i=0;
@@ -110,10 +112,10 @@ function Animation(duration){
 		}
 	}
 
-	this.act = function(id, CSS_property, start_time, end_time, i_val, f_val, path){ 
+	this.act = function(id, CSS_property, start_time, end_time, i_val, f_val, unit){ 
 		check_id(id);
 
-		let params = [CSS_property, start_time, end_time, i_val, f_val, path];
+		let params = [CSS_property, start_time, end_time, i_val, f_val, unit];
 	
 		/* add every command to params property 
 		 * inside the screen object with the given id in the map.
@@ -131,11 +133,14 @@ function Animation(duration){
 	//animation frames start.
 	this.run = function(){
 		if(so_map.size > 0){
-			//setting initial value to their style elements.
+			//setting initial values to their style elements.
 			so_map.forEach(function(value, key){
 				//assign initial CSS values.
-				value.dom_obj.style[value.params[0][0]] = value.params[0][3].toString() + "px";
-				console.log(value.dom_obj.style[value.params[0][0]]);
+
+				for(let i = 0; i < value.params.length; i++){
+					value.dom_obj.style[value.params[i][0]] = value.params[i][3].toString() + value.params[i][5];
+					console.log(value.dom_obj.style[value.params[i][0]]);
+				}
 			});
 		}
 
@@ -168,17 +173,26 @@ function Animation(duration){
 
 let duration = 3;
 
+let dom_id = "image";
 let CSS_property = "left";
 let start_time = 1.5; // in sec
 let end_time = 2.5;
-let i_val = 0;
-let f_val = 200;
+let initial_val = 0;
+let final_val = 200;
 let unit = "px";
-let path = "linear";
 
 let a = new Animation(duration);
-a.act("image", CSS_property, start_time, end_time, i_val, f_val, path); 
-a.act("image2", CSS_property, 2, 3, 20, 400, path);
+
+a.act(dom_id, CSS_property, start_time, end_time, initial_val, final_val, unit);
+a.act("image", "width", start_time, end_time, 0, 200, "px");
+a.act("image", "top", start_time, end_time, 0, 100, "px");
+a.act("image", "rotate", start_time, end_time, 0, 360, "deg");
+
+let circle = document.createElement("circle");
+document.body.appendChild(circle);
+circle.id = "circle";
+circle.style = 'position: absolute; border: 3px solid red; border-radius: 50px; width: 100px; height: 100px;';
+a.act("circle", "left", 0, 2, 30, 400, "px");
+
 a.run();
 
-let a2 = new Animation(10);
