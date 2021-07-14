@@ -1,1 +1,1 @@
-# JavaScript Animation Framework
+# JavaScript Animation Script
